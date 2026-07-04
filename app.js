@@ -125,6 +125,27 @@ function renderTrainers(){
     <div class="trainer-b"><h3>${esc(t.n)}</h3><div class="role">${esc(t.r)}</div><p>${esc(t.s)}</p></div></div>`).join('');
 }
 
+/* ---- upcoming batches (Supabase-driven, sample fallback) ---- */
+const SAMPLE_UPCOMING=[
+  {course:'CCNA (Routing & Switching)',instructor:'Sami Ullah',timing:'06:00 PM – 08:00 PM',start_date:'2026-08-04',mode:'On-campus',seats:'Few seats left'},
+  {course:'CCNP Enterprise',instructor:'Muhammad Awais',timing:'04:00 PM – 06:00 PM',start_date:'2026-08-11',mode:'Online & On-campus'},
+  {course:'MCSE (Microsoft)',instructor:'Usman Khan',timing:'05:00 PM – 07:00 PM',start_date:'2026-08-18',mode:'On-campus'},
+  {course:'AI CCTV & Video Analytics',instructor:'Imran Khan',timing:'11:00 AM – 01:00 PM',start_date:'2026-08-20',mode:'On-campus',seats:'Limited seats'},
+  {course:'Certified Ethical Hacking',instructor:'Fahad Ullah',timing:'07:00 PM – 09:00 PM',start_date:'2026-08-25',mode:'Online'},
+  {course:'AWS Cloud (Associate)',instructor:'Bilal Ahmed',timing:'08:00 PM – 10:00 PM',start_date:'2026-09-01',mode:'Online'},
+];
+function modeBadge(m){ m=m||'On-campus'; const on=/online/i.test(m),camp=/campus/i.test(m); const cls=(on&&camp)?'both':(on?'online':'campus'); return `<span class="mode ${cls}">${esc(m)}</span>`; }
+function ucTable(rows){
+  return `<div class="uc-wrap"><table class="uc-table"><thead><tr><th>Course</th><th>Instructor</th><th>Timing</th><th>Starting</th><th>Mode</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td class="uc-course">${esc(r.course)}${r.seats?`<span class="uc-seats">${esc(r.seats)}</span>`:''}</td><td>${esc(r.instructor||'—')}</td><td class="uc-nowrap">${esc(r.timing||'—')}</td><td class="uc-nowrap">${fmtDate(r.start_date)}</td><td>${modeBadge(r.mode)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+async function renderUpcoming(){
+  const wrap=document.getElementById('upcoming'); if(!wrap) return; const c=sb();
+  try{ if(!c) throw 0; const {data,error}=await c.from('upcoming_classes').select('course,instructor,timing,start_date,mode,seats').eq('active',true).order('start_date',{ascending:true}).limit(10); if(error) throw error;
+    wrap.innerHTML=ucTable(data&&data.length?data:SAMPLE_UPCOMING);
+  }catch(e){ wrap.innerHTML=ucTable(SAMPLE_UPCOMING); }
+}
+
 /* ---- blog ---- */
 function stripTags(s){ return String(s).replace(/<[^>]*>/g,'').replace(/&amp;/g,'&'); }
 const _MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -215,7 +236,7 @@ function injectSEO(){
 document.addEventListener('DOMContentLoaded',()=>{
   const page=document.body.dataset.page||'home';
   injectHeader(page); injectFooter();
-  renderFilters(); renderCourses(); renderTrainers(); renderBlogTeaser(); renderBlogList(); renderArticle();
+  renderFilters(); renderCourses(); renderUpcoming(); renderTrainers(); renderBlogTeaser(); renderBlogList(); renderArticle();
   wireFAQ(); wireEnquiry(); animateCounters(); if(page==='home') scrollSpy();
   injectSEO(); revealInit();
   document.querySelectorAll('[data-inst=wa]').forEach(e=>e.href=waLink());

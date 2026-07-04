@@ -201,6 +201,21 @@ img{max-width:100%}
 .form-msg{padding:12px 14px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;display:none}
 .form-msg.ok{display:block;background:#e7f8ee;color:#15803d} .form-msg.err{display:block;background:#fdecec;color:#b91c1c}
 
+/* upcoming batches table */
+.uc-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);background:#fff}
+.uc-table{width:100%;border-collapse:collapse;background:#fff;min-width:660px}
+.uc-table th{background:var(--primary);color:#fff;text-align:left;padding:15px 18px;font-size:13.5px;font-weight:700;font-family:'Nunito';letter-spacing:.3px}
+.uc-table td{padding:15px 18px;border-top:1px solid var(--line);font-size:14.5px;color:var(--body)}
+.uc-table tbody tr{transition:.15s}
+.uc-table tbody tr:hover{background:var(--bg2)}
+.uc-course{font-weight:700;color:var(--ink);font-family:'Nunito'}
+.uc-seats{display:block;font-size:11.5px;font-weight:700;color:#e08600;margin-top:2px}
+.uc-nowrap{white-space:nowrap}
+.mode{display:inline-block;font-size:12px;font-weight:700;padding:5px 12px;border-radius:50px;white-space:nowrap;font-family:'Nunito'}
+.mode.online{background:#e7ecfe;color:var(--primary-d)}
+.mode.campus{background:#e7f8ee;color:#15803d}
+.mode.both{background:#f0e9fe;color:#6d28d9}
+
 /* blog */
 .post{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:.25s;color:inherit}
 .post:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
