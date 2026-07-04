@@ -141,10 +141,12 @@ function ucTable(rows){
     <tbody>${rows.map(r=>`<tr><td class="uc-course">${esc(r.course)}${r.seats?`<span class="uc-seats">${esc(r.seats)}</span>`:''}</td><td>${esc(r.instructor||'—')}</td><td class="uc-nowrap">${esc(r.timing||'—')}</td><td class="uc-nowrap">${fmtDate(r.start_date)}</td><td>${modeBadge(r.mode)}</td></tr>`).join('')}</tbody></table></div>`;
 }
 async function renderUpcoming(){
-  const wrap=document.getElementById('upcoming'); if(!wrap) return; const c=sb();
-  try{ if(!c) throw 0; const {data,error}=await c.from('upcoming_classes').select('course,instructor,timing,start_date,mode,seats').eq('active',true).order('start_date',{ascending:true}).limit(10); if(error) throw error;
-    wrap.innerHTML=ucTable(data&&data.length?data:SAMPLE_UPCOMING);
-  }catch(e){ wrap.innerHTML=ucTable(SAMPLE_UPCOMING); }
+  const wrap=document.getElementById('upcoming'); if(!wrap) return;
+  wrap.innerHTML=ucTable(SAMPLE_UPCOMING);        // show instantly, never hangs on "Loading…"
+  const c=sb(); if(!c) return;
+  try{ const {data,error}=await c.from('upcoming_classes').select('course,instructor,timing,start_date,mode,seats').eq('active',true).order('start_date',{ascending:true}).limit(10);
+    if(!error && data && data.length) wrap.innerHTML=ucTable(data);   // upgrade to live schedule
+  }catch(e){}
 }
 
 /* ---- blog ---- */
