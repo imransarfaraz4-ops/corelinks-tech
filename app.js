@@ -37,6 +37,7 @@ function navLinks(onIndex){
   const h=id=>onIndex?('#'+id):('index.html#'+id);
   return `<a href="${onIndex?'#hero':'index.html'}">Home</a>
     <a href="${h('about')}">About</a>
+    <a href="${h('schedule')}">Schedule</a>
     <a href="${h('courses')}">Courses</a>
     <a href="${h('trainers')}">Trainers</a>
     <a href="${h('pricing')}">Enrollment</a>
