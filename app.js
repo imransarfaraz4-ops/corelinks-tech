@@ -144,8 +144,8 @@ async function renderUpcoming(){
   const wrap=document.getElementById('upcoming'); if(!wrap) return;
   wrap.innerHTML=ucTable(SAMPLE_UPCOMING);        // show instantly, never hangs on "Loading…"
   const c=sb(); if(!c) return;
-  try{ const {data,error}=await c.from('upcoming_classes').select('course,instructor,timing,start_date,mode,seats').eq('active',true).order('start_date',{ascending:true}).limit(10);
-    if(!error && data && data.length) wrap.innerHTML=ucTable(data);   // upgrade to live schedule
+  try{ const {data,error}=await c.from('v_web_classes').select('course,instructor,timing,start_date,mode').order('start_date',{ascending:true}).limit(10);
+    if(!error && data && data.length) wrap.innerHTML=ucTable(data);   // upgrade to live schedule (published classes from the app)
   }catch(e){}
 }
 
