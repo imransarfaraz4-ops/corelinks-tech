@@ -203,9 +203,16 @@ function wireEnquiry(){
     const payload={name:f.eName.value.trim(),phone:(code?code+' ':'')+num,email:f.eEmail.value.trim()||null,course:f.eCourse.value||null,message:f.eMessage.value.trim()||null};
     if(!payload.name||!num){ msg.className='form-msg err'; msg.textContent='Please enter your name and phone number.'; return; }
     btn.disabled=true; const t=btn.textContent; btn.textContent='Sending…';
-    try{ const c=sb(); if(c){ const {error}=await c.from('enquiries').insert(payload); if(error) throw error; }
-      msg.className='form-msg ok'; msg.textContent='✅ Thank you, '+payload.name+'! Your enquiry has been received — our team will contact you shortly.'; f.reset(); buildCourseOptions('eCourse'); buildCountryOptions('eCode');
-    }catch(err){ msg.className='form-msg err'; msg.innerHTML='Could not submit right now. Please <a href="'+waLink('Enquiry: '+payload.name)+'" target="_blank">message us on WhatsApp</a> instead.'; }
+    try{ const c=sb(); if(c) await c.from('enquiries').insert(payload); }catch(_){}   // best-effort DB log
+    try{
+      const res=await fetch('https://formsubmit.co/ajax/'+encodeURIComponent(INST.email),{
+        method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({ _subject:'New website enquiry — '+payload.name+(payload.course?' ('+payload.course+')':''), _template:'table', _captcha:'false',
+          Name:payload.name, 'Phone / WhatsApp':payload.phone, Email:payload.email||'-', Course:payload.course||'-', Message:payload.message||'-' }) });
+      let ok=res.ok; try{ const j=await res.json(); ok=ok&&(j.success===true||j.success==='true'); }catch(_){}
+      if(!ok) throw new Error('send failed');
+      msg.className='form-msg ok'; msg.textContent='✅ Thank you, '+payload.name+'! Your enquiry has been sent — our team will contact you shortly.'; f.reset(); buildCourseOptions('eCourse'); buildCountryOptions('eCode');
+    }catch(err){ msg.className='form-msg err'; msg.innerHTML='Could not submit right now. Please <a href="'+waLink('Enquiry: '+payload.name+' — '+payload.phone)+'" target="_blank">message us on WhatsApp</a> instead.'; }
     finally{ btn.disabled=false; btn.textContent=t; }
   };
 }
