@@ -11,8 +11,10 @@
   function root(){ return document.getElementById('portalRoot'); }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function initials(name){ return String(name||'S').trim().split(/\s+/).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase(); }
+  function setReading(on){ var w=document.querySelector('.portal-wrap'); if(w) w.classList.toggle('portal-reading', !!on); }
 
   function showLogin(msg){
+    setReading(false);
     root().innerHTML =
       '<div class="portal-card">' +
         '<h1>Student Portal</h1>' +
@@ -58,6 +60,7 @@
   }
 
   async function showPortal(){
+    setReading(false);
     root().innerHTML = '<div class="portal-card"><p class="portal-sub" style="margin:0">Loading your portal…</p></div>';
     try{
       var ures = await sb().auth.getUser();
@@ -173,6 +176,7 @@
     }catch(ex){ el.innerHTML='<p class="portal-sub" style="margin:0">Could not load lessons right now.</p>'; }
   }
   async function openLesson(id){
+    setReading(true);
     window.scrollTo(0,0);
     root().innerHTML='<div class="portal-card"><p class="portal-sub" style="margin:0">Loading…</p></div>';
     function back(){ showPortal(); }
@@ -196,6 +200,7 @@
     ['lsnBack','lsnBack2'].forEach(function(bid){ var b=document.getElementById(bid); if(b) b.addEventListener('click', back); });
   }
   function showAccessEnded(name){
+    setReading(false);
     root().innerHTML =
       '<div class="portal-card">' +
         '<h1>Access ended</h1>' +
