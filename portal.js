@@ -68,6 +68,14 @@
       var name = (stu && stu.full_name) || (prof && prof.full_name) || user.email || 'Student';
       var avatar = (stu && stu.photo_url) ? '<img src="'+esc(stu.photo_url)+'" alt="">' : esc(initials(name));
 
+      // Access gate: a student may use the portal only while an enrolled class is ongoing.
+      if(stu){
+        try{
+          var acc = (await sb().rpc('my_portal_access')).data;
+          if(acc && acc.found && acc.active === false){ return showAccessEnded(name); }
+        }catch(e){ /* RPC missing or error -> fail-soft, allow access */ }
+      }
+
       if(!stu){
         // Logged in, but not linked to a student record (e.g. a staff/teacher login)
         root().innerHTML =
@@ -99,6 +107,18 @@
       root().innerHTML = '<div class="portal-card"><p class="portal-sub">Something went wrong loading your portal. Please try again.</p><p><button class="link-btn" id="plOut">Sign out</button></p></div>';
       var o = document.getElementById('plOut'); if(o) o.addEventListener('click', logout);
     }
+  }
+
+  function showAccessEnded(name){
+    root().innerHTML =
+      '<div class="portal-card">' +
+        '<h1>Access ended</h1>' +
+        '<p class="portal-sub">Hi '+esc(name)+', your portal access has ended because your enrolled course(s) have been completed.</p>' +
+        '<div class="portal-note">To regain access, please enrol in a new class at Corelinks. Contact us if you think this is a mistake.</div>' +
+        '<p style="margin-top:18px"><button class="link-btn" id="plOut">Sign out</button></p>' +
+      '</div>';
+    var out = document.getElementById('plOut'); if(out) out.addEventListener('click', logout);
+    try{ sb().auth.signOut(); }catch(e){}
   }
 
   async function logout(){
