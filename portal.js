@@ -97,9 +97,14 @@
               (stu.roll_no ? '<div class="rr"><span>Roll No</span><b>'+esc(stu.roll_no)+'</b></div>' : '') +
               (stu.email ? '<div class="rr"><span>Email</span><b>'+esc(stu.email)+'</b></div>' : '') +
             '</div>' +
-            '<div class="portal-note">📚 Your tutorials and hands-on practice for your courses will appear here soon.</div>' +
-            '<p style="margin-top:18px"><button class="link-btn" id="plOut">Sign out</button></p>' +
+            '<p style="margin-top:16px"><button class="link-btn" id="plOut">Sign out</button></p>' +
+          '</div>' +
+          '<div class="portal-card" style="margin-top:16px">' +
+            '<h2 style="font-family:\'Poppins\',sans-serif;font-size:19px;margin:0 0 4px">Learning Materials</h2>' +
+            '<p class="portal-sub" style="margin:0 0 14px">Books, lab manuals and notes for your courses.</p>' +
+            '<div id="spMaterials"><p class="portal-sub" style="margin:0">Loading…</p></div>' +
           '</div>';
+        loadMaterials();
       }
       var out = document.getElementById('plOut');
       if(out) out.addEventListener('click', logout);
@@ -109,6 +114,33 @@
     }
   }
 
+  function fmtBytes(n){ n=Number(n||0); if(!n) return ''; var u=['B','KB','MB','GB'], i=Math.floor(Math.log(n)/Math.log(1024)); return (n/Math.pow(1024,i)).toFixed(i?1:0)+' '+u[i]; }
+  async function loadMaterials(){
+    var el=document.getElementById('spMaterials'); if(!el) return;
+    try{
+      var res=await sb().rpc('my_materials');
+      if(res && res.error){ el.innerHTML='<p class="portal-sub" style="margin:0">Materials aren\'t available yet.</p>'; return; }
+      var rows=(res && res.data) ? res.data : [];
+      if(!rows.length){ el.innerHTML='<p class="portal-sub" style="margin:0">No materials have been added for your course(s) yet.</p>'; return; }
+      var byCourse={};
+      rows.forEach(function(r){ var k=r.course_name||'General'; (byCourse[k]=byCourse[k]||[]).push(r); });
+      var html='';
+      Object.keys(byCourse).forEach(function(course){
+        html+='<div style="margin-bottom:14px"><div style="font-weight:700;color:#0f1b2d;margin-bottom:6px">'+esc(course)+'</div>';
+        byCourse[course].forEach(function(r){
+          var kind=({book:'Book',lab_manual:'Lab Manual',notes:'Notes',other:'File'})[r.kind]||'File';
+          var icon=(r.kind==='lab_manual')?'🧪':(r.kind==='notes')?'📝':'📘';
+          html+='<a href="'+esc(r.file_url||'#')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid #e6ebf3;border-radius:10px;text-decoration:none;color:#0f1b2d;margin-bottom:8px">'+
+            '<span style="width:34px;height:34px;border-radius:8px;background:#eef4ff;display:flex;align-items:center;justify-content:center;flex:none">'+icon+'</span>'+
+            '<span style="flex:1;min-width:0"><b style="display:block">'+esc(r.title||r.file_name||'Material')+'</b>'+
+              '<span style="color:#64748b;font-size:12.5px">'+esc(kind)+(r.file_size?(' · '+fmtBytes(r.file_size)):'')+'</span></span>'+
+            '<span style="color:#2563eb;font-weight:600;font-size:13px">Open &#8599;</span></a>';
+        });
+        html+='</div>';
+      });
+      el.innerHTML=html;
+    }catch(ex){ el.innerHTML='<p class="portal-sub" style="margin:0">Could not load materials right now.</p>'; }
+  }
   function showAccessEnded(name){
     root().innerHTML =
       '<div class="portal-card">' +
