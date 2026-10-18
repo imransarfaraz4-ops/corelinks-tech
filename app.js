@@ -42,7 +42,8 @@ function navLinks(onIndex){
     <a href="${h('trainers')}">Trainers</a>
     <a href="${h('pricing')}">Enrollment</a>
     <a href="blog.html">Blog</a>
-    <a href="${h('contact')}">Contact</a>`;
+    <a href="${h('contact')}">Contact</a>
+    <a href="portal.html">Student Portal</a>`;
 }
 function injectHeader(page){
   const el=document.getElementById('site-header'); if(!el) return;
