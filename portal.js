@@ -103,8 +103,14 @@
             '<h2 style="font-family:\'Poppins\',sans-serif;font-size:19px;margin:0 0 4px">Learning Materials</h2>' +
             '<p class="portal-sub" style="margin:0 0 14px">Books, lab manuals and notes for your courses.</p>' +
             '<div id="spMaterials"><p class="portal-sub" style="margin:0">Loading…</p></div>' +
+          '</div>' +
+          '<div class="portal-card" style="margin-top:16px">' +
+            '<h2 style="font-family:\'Poppins\',sans-serif;font-size:19px;margin:0 0 4px">Labs &amp; Tutorials</h2>' +
+            '<p class="portal-sub" style="margin:0 0 14px">Hands-on labs and lessons for your courses.</p>' +
+            '<div id="spLessons"><p class="portal-sub" style="margin:0">Loading…</p></div>' +
           '</div>';
         loadMaterials();
+        loadLessons();
       }
       var out = document.getElementById('plOut');
       if(out) out.addEventListener('click', logout);
@@ -140,6 +146,54 @@
       });
       el.innerHTML=html;
     }catch(ex){ el.innerHTML='<p class="portal-sub" style="margin:0">Could not load materials right now.</p>'; }
+  }
+  async function loadLessons(){
+    var el=document.getElementById('spLessons'); if(!el) return;
+    try{
+      var res=await sb().rpc('my_lessons');
+      if(res && res.error){ el.innerHTML='<p class="portal-sub" style="margin:0">Lessons aren\'t available yet.</p>'; return; }
+      var rows=(res && res.data) ? res.data : [];
+      if(!rows.length){ el.innerHTML='<p class="portal-sub" style="margin:0">No labs or lessons have been added for your course(s) yet.</p>'; return; }
+      var byCourse={};
+      rows.forEach(function(r){ var k=r.course_name||'General'; (byCourse[k]=byCourse[k]||[]).push(r); });
+      var html='';
+      Object.keys(byCourse).forEach(function(course){
+        html+='<div style="margin-bottom:14px"><div style="font-weight:700;color:#0f1b2d;margin-bottom:6px">'+esc(course)+'</div>';
+        byCourse[course].forEach(function(r){
+          html+='<button type="button" data-lesson="'+esc(r.id)+'" style="width:100%;text-align:left;display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid #e6ebf3;border-radius:10px;background:#fff;cursor:pointer;margin-bottom:8px;font:inherit;color:#0f1b2d">'+
+            '<span style="width:34px;height:34px;border-radius:8px;background:#eef4ff;display:flex;align-items:center;justify-content:center;flex:none">'+(r.kind==='lab'?'🧪':'📗')+'</span>'+
+            '<span style="flex:1;min-width:0"><b style="display:block">'+esc(r.title||'Lesson')+'</b>'+
+              (r.summary?'<span style="color:#64748b;font-size:12.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.summary)+'</span>':'')+'</span>'+
+            '<span style="color:#2563eb;font-weight:600;font-size:13px">Open &#8599;</span></button>';
+        });
+        html+='</div>';
+      });
+      el.innerHTML=html;
+      el.querySelectorAll('[data-lesson]').forEach(function(b){ b.addEventListener('click', function(){ openLesson(b.getAttribute('data-lesson')); }); });
+    }catch(ex){ el.innerHTML='<p class="portal-sub" style="margin:0">Could not load lessons right now.</p>'; }
+  }
+  async function openLesson(id){
+    window.scrollTo(0,0);
+    root().innerHTML='<div class="portal-card"><p class="portal-sub" style="margin:0">Loading…</p></div>';
+    function back(){ showPortal(); }
+    try{
+      var res=await sb().rpc('my_lesson', { p_id: id });
+      var r=(res && res.data && res.data.length) ? res.data[0] : null;
+      if(!r){
+        root().innerHTML='<div class="portal-card"><p class="portal-sub">This lesson isn\'t available.</p><p><button class="link-btn" id="lsnBack">&#8592; Back</button></p></div>';
+      }else{
+        root().innerHTML=
+          '<div class="portal-card">'+
+            '<p style="margin:0 0 10px"><button class="link-btn" id="lsnBack">&#8592; Back to portal</button></p>'+
+            '<h1 style="font-family:\'Poppins\',sans-serif;font-size:22px;margin:0 0 12px">'+esc(r.title||'Lesson')+'</h1>'+
+            '<div class="lesson-body">'+(r.body||'<p>No content.</p>')+'</div>'+
+            '<p style="margin-top:18px"><button class="link-btn" id="lsnBack2">&#8592; Back to portal</button></p>'+
+          '</div>';
+      }
+    }catch(ex){
+      root().innerHTML='<div class="portal-card"><p class="portal-sub">Could not load this lesson.</p><p><button class="link-btn" id="lsnBack">&#8592; Back</button></p></div>';
+    }
+    ['lsnBack','lsnBack2'].forEach(function(bid){ var b=document.getElementById(bid); if(b) b.addEventListener('click', back); });
   }
   function showAccessEnded(name){
     root().innerHTML =
